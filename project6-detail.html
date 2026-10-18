@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Quadrotor UAV structural weight optimisation using MSC Nastran SOL 200, followed by static, composite failure-index and buckling verification.">
+<title>Project 6 | UAV Structural Weight Optimisation</title>
+<style>
+:root{--bg:#0b1020;--panel:#121a2d;--panel2:#172239;--text:#eef3ff;--muted:#a8b4cc;--line:#27334b;--accent:#69e0c1;--blue:#91b8ff;--max:1080px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 80% 0%,#182b43 0,transparent 38%),var(--bg);color:var(--text);font:16px/1.65 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}a{color:inherit;text-decoration:none}.wrap{width:min(var(--max),calc(100% - 40px));margin:auto}.nav{display:flex;justify-content:space-between;align-items:center;padding:24px 0;border-bottom:1px solid var(--line)}.brand{font-weight:750;letter-spacing:.02em}.brand span{color:var(--accent)}.navlinks{display:flex;gap:20px;color:var(--muted);font-size:14px}.navlinks a:hover{color:var(--accent)}.eyebrow,.kicker{color:var(--accent);text-transform:uppercase;letter-spacing:.15em;font-size:12px;font-weight:750}.hero{padding:58px 0 42px;display:grid;grid-template-columns:1.1fr .9fr;gap:32px;align-items:center}.hero h1{font-size:clamp(34px,5vw,58px);line-height:1.05;letter-spacing:-.045em;margin:12px 0 18px}.lead{font-size:18px;color:#c3cde0}.cover{width:100%;display:block;border:1px solid var(--line);border-radius:16px;background:#fff}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}.btn{display:inline-flex;padding:11px 16px;border-radius:9px;font-size:14px;font-weight:700;border:1px solid var(--line);background:var(--panel)}.btn.primary{background:var(--accent);color:#092019;border-color:var(--accent)}section{padding:42px 0;border-top:1px solid var(--line)}h2{font-size:clamp(25px,3vw,34px);line-height:1.2;letter-spacing:-.03em;margin:8px 0 18px}.muted{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.metric,.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}.metric small{display:block;color:var(--muted);font-size:12px}.metric strong{display:block;color:var(--accent);font-size:clamp(24px,3vw,34px);line-height:1.2;margin:8px 0}.metric span{font-size:13px;color:var(--muted)}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:16px}.panel h3{margin:0 0 10px;font-size:17px}.panel ul{padding-left:20px;margin:8px 0;color:#c3cde0}.panel li{margin:7px 0}.note{border-left:3px solid var(--accent);padding:13px 16px;background:#111b2c;color:var(--muted);font-size:13px;border-radius:0 8px 8px 0;margin-top:18px}.tablewrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:650px;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}th,td{text-align:left;padding:13px 15px;border-bottom:1px solid var(--line);font-size:14px}th{color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:.06em}td{color:#d8e2f4}.footer{padding:28px 0 40px;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:14px}
+
+.report-intro{color:var(--muted);max-width:780px}
+.report-viewer{width:min(520px,100%);margin:22px auto 0;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px;box-shadow:0 8px 28px rgba(0,0,0,.18)}
+.report-stage{position:relative;width:100%;overflow:hidden;background:transparent;border-radius:8px;min-height:0;display:flex;align-items:center;justify-content:center;touch-action:pan-y}
+.report-stage img{display:block;width:auto;height:auto;max-width:100%;max-height:78vh;aspect-ratio:210/297;object-fit:contain;background:#fff;margin:0 auto;will-change:transform,opacity;box-shadow:0 2px 12px rgba(0,0,0,.22)}
+.report-stage img.exit-left{animation:exitLeft .24s ease-in forwards}
+.report-stage img.exit-right{animation:exitRight .24s ease-in forwards}
+.report-stage img.enter-right{transform:translateX(100%);opacity:.65}
+.report-stage img.enter-left{transform:translateX(-100%);opacity:.65}
+.report-stage img.entering{transition:transform .28s ease-out,opacity .28s ease-out;transform:translateX(0);opacity:1}
+@keyframes exitLeft{to{transform:translateX(-100%);opacity:.35}}
+@keyframes exitRight{to{transform:translateX(100%);opacity:.35}}
+.report-controls{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:12px 2px 2px}
+.report-navbtn{border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--text);padding:10px 14px;font:inherit;font-weight:700;cursor:pointer;white-space:nowrap}
+.report-navbtn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}.report-navbtn:disabled{opacity:.35;cursor:not-allowed}
+.report-counter{text-align:center;color:var(--muted);font-size:13px}.report-counter strong{color:var(--text)}
+.report-progress{height:3px;background:var(--line);border-radius:5px;overflow:hidden;margin:0 2px 3px}.report-progress span{display:block;height:100%;width:5%;background:var(--accent);transition:width .25s ease}
+@media(max-width:600px){.report-viewer{padding:8px}.report-controls{gap:7px}.report-navbtn{padding:9px 10px;font-size:13px}.report-stage img{max-height:72vh;max-width:100%}}
+@media(prefers-reduced-motion:reduce){.report-stage img.exit-left,.report-stage img.exit-right{animation-duration:.01ms}.report-stage img.entering,.report-progress span{transition:none}}
+
+
+@media(max-width:760px){.hero,.twocol{grid-template-columns:1fr}.hero{padding-top:38px}.grid{grid-template-columns:1fr 1fr}.cover{max-width:560px}.navlinks{gap:12px;font-size:12px}}
+@media(max-width:450px){.grid{grid-template-columns:1fr}.wrap{width:calc(100% - 28px)}.navlinks{gap:9px}.hero h1{font-size:37px}}
+</style></head><body>
+<header class="wrap nav"><a class="brand" href="index.html#top">CHAITANYA<span>.</span></a><nav class="navlinks"><a href="index.html#projects">All projects</a><a href="index.html#services">Services</a><a href="index.html#contact">Contact</a></nav></header>
+<main>
+<div class="wrap hero"><div><div class="eyebrow">Project 6 · Independent portfolio study</div><h1>Quadrotor UAV<br>Structural Weight Optimisation</h1><p class="lead">An integrated continuation of the assembly-level structural assessment: sizing optimisation, post-optimisation buckling review, targeted thickness correction, and independent verification.</p><p class="muted">CATIA V5 · Altair HyperMesh · MSC Nastran SOL 101 / 103 / 105 / 200 · MSC Patran</p><div class="actions"><a class="btn primary" href="#full-report">Read full report ↓</a><a class="btn" href="index.html#projects">← Back to projects</a></div></div><div><img class="cover" src="Project_6_Assets/project6-cover.png" alt="Project 6 report cover"></div></div>
+<section><div class="wrap"><div class="kicker">01 / Principal results</div><h2>Mass reduction with verification-led correction</h2><div class="grid">
+<div class="metric"><small>Total UAV mass</small><strong>−37.92%</strong><span>10.71654 kg → 6.65262 kg</span></div>
+<div class="metric"><small>Airframe mass</small><strong>−56.31%</strong><span>7.21654 kg → 3.15262 kg</span></div>
+<div class="metric"><small>Final maximum composite FI</small><strong>0.18904</strong><span>Below the project criterion of 1.0</span></div>
+<div class="metric"><small>Final listed displacement</small><strong>1.5097 mm</strong><span>Baseline: 0.6344 mm</span></div>
+<div class="metric"><small>Final listed von Mises stress</small><strong>58.005 MPa</strong><span>Baseline: 20.155 MPa</span></div>
+<div class="metric"><small>Minimum first buckling factor</small><strong>3.250</strong><span>Final manually corrected design</span></div>
+</div><div class="note">The minimum-mass SOL 200 candidate was not treated as the final design because the post-optimisation buckling check identified a shortfall. Selected thicknesses were increased manually, then the corrected design was independently verified. The final design corresponds to the report's cycle-13 row.</div></div></section>
+<section><div class="wrap"><div class="kicker">02 / Methodology</div><h2>Analysis workflow</h2><div class="twocol"><div class="panel"><h3>Model and optimisation</h3><ul><li>Continued the established four-arm quadrotor assembly and seven-load-case framework from Projects 4 and 5.</li><li>Used a mixed shell, solid, 1D and RBE idealisation with 25,184 elements and 28,743 nodes.</li><li>Used MSC Nastran SOL 200 to size PSHELL thicknesses and individual PCOMP lamina thicknesses.</li><li>Optimisation responses documented for the run included von Mises stress and composite failure index.</li></ul></div><div class="panel"><h3>Post-optimisation verification</h3><ul><li>Reviewed the cycle-12 candidate for linear buckling after optimisation.</li><li>Applied targeted manual thickness changes to address the buckling shortfall.</li><li>Re-ran static, composite failure-index and buckling checks for the corrected design.</li><li>Compared final responses against the Project 4/5 baseline and documented the stiffness–mass–stability trade-off.</li></ul></div></div></div></section>
+<section><div class="wrap"><div class="kicker">03 / Baseline vs final</div><h2>Key response comparison</h2><div class="tablewrap"><table><thead><tr><th>Metric</th><th>Project 4/5 baseline</th><th>Final corrected design</th><th>Change / interpretation</th></tr></thead><tbody>
+<tr><td>Total UAV mass</td><td>10.71654 kg</td><td>6.65262 kg</td><td>−37.92%</td></tr>
+<tr><td>Airframe mass</td><td>7.21654 kg</td><td>3.15262 kg</td><td>−56.31%</td></tr>
+<tr><td>Maximum listed displacement</td><td>0.6344 mm</td><td>1.5097 mm</td><td>Increased compliance</td></tr>
+<tr><td>Maximum listed von Mises stress</td><td>20.155 MPa</td><td>58.005 MPa</td><td>Higher structural utilisation</td></tr>
+<tr><td>Maximum listed composite FI</td><td>0.02938</td><td>0.18904</td><td>Below project criterion 1.0</td></tr>
+<tr><td>Minimum listed first buckling factor</td><td>43.558</td><td>3.250</td><td>Reduced stability margin; reported as passing adopted criterion</td></tr>
+</tbody></table></div></div></section>
+<section><div class="wrap"><div class="kicker">04 / Engineering interpretation</div><h2>What the results show</h2><div class="panel"><ul><li>The corrected design reduces total assembly mass by approximately 4.064 kg compared with the baseline.</li><li>Displacement and stress increase, showing the expected trade-off between mass reduction and structural response.</li><li>The final reported composite failure index remains below the chosen project criterion.</li><li>The minimum listed buckling factor is much lower than the baseline; buckling therefore remains an important design driver and should not be inferred from static constraints alone.</li></ul></div><div class="note"><strong>Scope and limitations:</strong> This is an independent portfolio study, not a certified or flight-qualified UAV design. Material strengths are representative values sourced from public information, and conclusions depend on the selected model idealisation, load cases, boundary conditions, failure theory and verification criteria. The SOL 200 objective-row mass is not presented as the final verified mass.</div><div class="actions"><a class="btn primary" href="#full-report">View report pages ↑</a><a class="btn" href="index.html#projects">Return to project list</a></div></div></section>
+<section id="full-report"><div class="wrap"><div class="kicker">05 / Complete technical report</div><h2>Report pages</h2><p class="report-intro">The complete report is displayed below. For readability, open the image in a new tab or zoom your browser.</p><div class="report-viewer" aria-label="Project 6 report page viewer">
+<div class="report-stage" id="reportStage"><img id="reportPageImage" src="Project_6_Assets/report-pages/page-01.jpg" alt="Project 6 technical report, page 1 of 20" decoding="async"></div>
+<div class="report-progress" aria-hidden="true"><span id="reportProgress" style="width:5%"></span></div>
+<div class="report-controls">
+<button class="report-navbtn" id="reportPrev" type="button" aria-label="Previous report page" disabled>← Previous</button>
+<div class="report-counter" aria-live="polite"><strong id="reportPageNumber">Page 1</strong> of 20</div>
+<button class="report-navbtn" id="reportNext" type="button" aria-label="Next report page">Next →</button>
+</div></div>
+<p class="report-intro" style="font-size:12px;margin-top:12px">Use Previous and Next to move through the report.</p></div></section>
+</main><footer class="wrap footer"><span>© 2026 Chaitanya Agrawal · Engineering portfolio</span><span>Evidence-led analysis · Explicit assumptions · Clear reporting</span></footer>
+<script>
+(() => {
+  const total = 20;
+  let current = 1;
+  let busy = false;
+  const img = document.getElementById('reportPageImage');
+  const prev = document.getElementById('reportPrev');
+  const next = document.getElementById('reportNext');
+  const number = document.getElementById('reportPageNumber');
+  const progress = document.getElementById('reportProgress');
+  const stage = document.getElementById('reportStage');
+  const pageSrc = n => `Project_6_Assets/report-pages/page-${String(n).padStart(2,'0')}.jpg`;
+  function updateControls() {
+    number.textContent = `Page ${current}`;
+    img.alt = `Project 6 technical report, page ${current} of ${total}`;
+    prev.disabled = current === 1;
+    next.disabled = current === total;
+    progress.style.width = `${current / total * 100}%`;
+  }
+  function goTo(target) {
+    if (busy || target < 1 || target > total || target === current) return;
+    busy = true;
+    const direction = target > current ? 'next' : 'prev';
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const swap = () => {
+      current = target;
+      img.src = pageSrc(current);
+      img.className = direction === 'next' ? 'enter-right' : 'enter-left';
+      updateControls();
+      if (reduced) {
+        img.className = '';
+        busy = false;
+        return;
+      }
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        img.className = 'entering';
+        window.setTimeout(() => { img.className = ''; busy = false; }, 300);
+      }));
+    };
+    if (reduced) { swap(); return; }
+    img.className = direction === 'next' ? 'exit-left' : 'exit-right';
+    window.setTimeout(swap, 230);
+  }
+  prev.addEventListener('click', () => goTo(current - 1));
+  next.addEventListener('click', () => goTo(current + 1));
+  document.addEventListener('keydown', event => {
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    if (event.key === 'ArrowLeft') goTo(current - 1);
+    if (event.key === 'ArrowRight') goTo(current + 1);
+  });
+  let touchX = null;
+  stage.addEventListener('touchstart', event => { touchX = event.changedTouches[0].clientX; }, {passive:true});
+  stage.addEventListener('touchend', event => {
+    if (touchX === null) return;
+    const dx = event.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 55) goTo(current + (dx < 0 ? 1 : -1));
+    touchX = null;
+  }, {passive:true});
+  updateControls();
+})();
+</script>
+
+</body></html>
